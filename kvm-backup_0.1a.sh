@@ -62,11 +62,11 @@ for DOMAIN in $DOMAINS; do
 		for IMAGE in $IMAGES; do
 			NAME=$(basename $IMAGE)
 			echo "Concatenating and compressing backup of #DOMAIN in place with tar and gzip"
-			tar cf - $BACKUPFOLDER/$NAME/* -P | pv -s $(du -sb $BACKUPFOLDER/$NAME | awk '{print $1}') | gzip > $BACKUPFOLDER/$NAME.tar.gz
+			tar -cf $BACKUPFOLDER/$NAME/* -P | pv -s $(du -sb $BACKUPFOLDER/$NAME | awk '{print $1}') | gzip > $BACKUPFOLDER/$NAME.tar.gz
 		done
 	else
 		echo "Please install pv to get status updates and progress during compression"
-		tar cvzf $BACKUPFOLDER/$NAME/* /$BACKUPFOLDER/$NAME.tgz
+		tar -cvzf $BACKUPFOLDER/$NAME/* /$BACKUPFOLDER/$NAME.tgz
 	fi
 
 	# Merge changes back
