@@ -61,18 +61,6 @@ for DOMAIN in $DOMAINS; do
         fi
 	done
 
-	# Compress disk image at target
-	if hash pv 2>/dev/null; then
-		for IMAGE in $IMAGES; do
-			NAME=$(basename $IMAGE)
-			echo "Concatenating and compressing backup of $DOMAIN in place with tar and gzip"
-			tar cf - $BACKUPFOLDER/ -P | pv -s $(du -sb $BACKUPFOLDER/ | awk '{print $1}') | gzip > $BACKUPFOLDER/$NAME.tar.gz
-		done
-	else
-		echo "Please install pv to get status updates and progress during compression"
-		tar -cvzf $BACKUPFOLDER/$NAME.tgz /$BACKUPFOLDER/$NAME
-	fi
-
 	# Merge changes back
 	BACKUPIMAGES=$(virsh domblklist $DOMAIN --details | grep disk | awk '{print $4}')
 
@@ -94,6 +82,41 @@ for DOMAIN in $DOMAINS; do
 	virsh dumpxml $DOMAIN > $BACKUPFOLDER/$DOMAIN.xml 1>/dev/null 2>&1
 
 	echo "Finished backup of $DOMAIN at $(date +'%d-%m-%Y %H:%M:%S')" | systemd-cat -t $SCRIPTNAME
+	
+		# Compress disk image and XM at target
+	if hash pv 2>/dev/null; then
+		for IMAGE in $IMAGES; do
+			NAME=$(basename $IMAGE)
+			echo "Concatenating and compressing backup of $DOMAIN in place with tar and gzip"
+			tar cf - $BACKUPFOLDER/ -P | pv -s $(du -sb $BACKUPFOLDER/ | awk '{print $1}') | gzip > $BACKUPFOLDER/$NAME.tar.gz
+		done
+	else
+		echo "Please install pv to get status updates and progress during compression"
+		tar -cvzf $BACKUPFOLDER/$NAME.tar.gz /$BACKUPFOLDER/$NAME
+	fi
+	
+	if [ $? -eq 0 ]; then
+		if -s $BACKUPFOLDER/$NAME.tar.gz
+			# These three lines can be removed or commented out
+			# if you're comfortable letting this script clean up after itself.
+			echo "$(ls -al $BACKUPFOLDER)"
+			echo "Okay to remove $BACKUPFOLDER/$NAME? (y/n)"
+			read RESPONSE
+			if [ RESPONSE -eq 'y' ] || [RESPONSE -eq 'Y' ]; then
+				rm $BACKUPFOLDER/$NAME
+			elif [ RESPONSE -eq 'n' ] || [RESPONSE -eq 'N' ]; then
+				echo "Doing nothing and exiting"
+			else
+				echo "Invalid response; exiting. Please be sure to clean up."
+				exit
+			fi
+		else
+			echo "File has not been created. Exiting"
+		fi
+	else
+		"There was a problem compressing the backup files. Exiting."
+		exit 1
+	fi
 done
 
 exit 0
