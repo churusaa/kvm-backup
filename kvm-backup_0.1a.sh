@@ -4,6 +4,10 @@
 # in English as well
 # LANG=en_US
 
+# Set the path where backups will be stored
+# No trailing slash expected here
+BACKUP_ROOT=/mnt/backups
+
 # Define the script name, this is used with systemd-cat to
 # identify this script in the journald output
 SCRIPTNAME=kvm-backup
@@ -20,7 +24,7 @@ for DOMAIN in $DOMAINS; do
 
 	# Generate the backup folder URI - this is something you should
 	# change/check
-	BACKUPFOLDER=/mnt/backups/$DOMAIN/$(date +%d-%m-%Y)
+	BACKUPFOLDER=$BACKUP_ROOT/$DOMAIN/$(date +%d-%m-%Y)
 	mkdir -p $BACKUPFOLDER
 
 	# Get the target disk
