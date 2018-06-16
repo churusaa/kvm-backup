@@ -61,12 +61,12 @@ for DOMAIN in $DOMAINS; do
 	if hash pv 2>/dev/null; then
 		for IMAGE in $IMAGES; do
 			NAME=$(basename $IMAGE)
-			echo "Concatenating and compressing backup of #DOMAIN in place with tar and gzip"
-			tar -cf $BACKUPFOLDER/$NAME/* -P | pv -s $(du -sb $BACKUPFOLDER/$NAME | awk '{print $1}') | gzip > $BACKUPFOLDER/$NAME.tar.gz
+			echo "Concatenating and compressing backup of $DOMAIN in place with tar and gzip"
+			tar cf - $BACKUPFOLDER/ -P | pv -s $(du -sb $BACKUPFOLDER/ | awk '{print $1}') | gzip > $BACKUPFOLDER/$NAME.tar.gz
 		done
 	else
 		echo "Please install pv to get status updates and progress during compression"
-		tar -cvzf $BACKUPFOLDER/$NAME/* /$BACKUPFOLDER/$NAME.tgz
+		tar -cvzf $BACKUPFOLDER/$NAME.tgz /$BACKUPFOLDER/$NAME
 	fi
 
 	# Merge changes back
